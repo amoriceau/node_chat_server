@@ -1,0 +1,178 @@
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Simple node chat</title>
+        <link rel="stylesheet"
+        href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css"
+        integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p"
+        crossorigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    </head>
+ 
+    <body>
+        <style>
+            html, body{
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+                background-color: #252940;
+                font-family: Montserrat;
+                height: 100vh;
+                width: 100vw;
+            }
+            header{
+                width: 100%;
+                height: 5vh;
+                color: #F2D5E5;
+                background: #2A2E4A;
+                padding: 20px;
+            }
+            header h1{
+                margin: 0;
+                padding: 0;
+            }
+            .main-container{
+                height: 95vh;
+            }
+            i{
+                color: #A63754 !important;
+                font-size: 15px;
+                margin-left: 5px;
+            }
+            .discussion-area{
+                width: 100%;
+                height: 80% !important;
+                padding: 30px;
+                max-width: 100%;
+                max-height: 80%;
+                overflow-x: hidden;
+                overflow-y: auto;
+            }
+            .writting-area{
+
+                height: 15% !important;
+            }
+            .msg-container{
+                display: flex;
+                align-items: baseline;
+                margin: 3px 0;
+
+            }
+            .username{
+                font-weight: 800;
+                color: #8C2B4F;
+                margin: 0 10px 0 0;
+            }
+            .userServer, .msg-server{
+                font-weight: 600 !important;
+                font-style: italic;
+                margin: 10px 5px 10px 0;
+            }
+            p{
+                margin: 0;
+                font-weight: 300;
+                color: #F2D5E5;
+            }
+            .msg-content{
+                background-color: #59273F;
+                padding: 8px 10px;
+                border-radius: 12px;
+                backdrop-filter: blur(45px);
+                -webkit-backdrop-filter: blur(45px);
+            }
+            input[type=text]{
+                border: none;
+                transition: all 350ms ease-in-out;
+                position: relative;
+                z-index: 10;
+                margin: 5px;
+                padding: 5px 10px;
+                width: 30vw;
+                height: 30%;
+                border-radius: 15px;
+                outline: none;
+            }
+            input[type=text]:focus{
+                border: 3px solid #8C2B4F;
+                transition: all 350ms ease-in-out;
+            }
+            button{
+                outline: none;
+                position: relative;
+                z-index: 5;
+                height: 30%;
+                width: 6vw;
+                border-radius: 15px;
+                background: #F2D5E5;
+                border: none;
+                margin: none;
+                text-align: center;
+                padding: 5px;
+                color: #252940;
+            }
+
+
+        </style>
+        <header>
+            <h1>Welcome to this simple <span>node + socket.io</span> server !</h1>
+        </header>
+        <main class="main-container">
+            <section class="discussion-area" id="discussion-area"></section>
+            <section class="writting-area">
+                <form action="/" method="post" id="msg-form">
+                    <input type="text" placeholder="your message here..." name="msg-field" class="msg-field" id="msg-field">
+                    <button type="submit" class="msg-send">Send <i class="fad fa-paper-plane"></i></button>
+                </form>
+            </section>
+        </main>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            var socket = io.connect('http://localhost:8080');
+            let nick = "";
+            let introArr = ["Welcome aboard", "It\'s a small step for humanity, but a big step for", "A new pokemon appears, it\'s a wild"]
+            while (nick === undefined || nick === ""  || nick === "server" || nick.match(/[\s]/)) {
+                nick = prompt('May I get your name please : ');
+                if(nick === undefined || nick === "" || nick.match(/[\s]/)){
+                    alert("Invalid name")
+                }
+                if(nick === 'server'){
+                    alert('No ur not the server, tell me who you are please')
+                }
+            }
+
+            socket.emit('new_user', nick)
+            document.title = nick + ' - ' + document.title
+
+            socket.on('sent_msg', data=>{
+                console.log('msg rcv from serv');
+                if(data.content.toString() !== "" || data.content.toString() !== " ")
+                    insertMsg(data.from, data.content)
+            })
+
+            socket.on('user_join', name => {
+                insertMsg('server', introArr[Math.floor(Math.random() * introArr.length)] + ' ' + name + ' !', 'msg-server' )
+            })
+
+            $("#msg-form").submit(()=>{
+                let msg = $("#msg-field").val()
+
+                socket.emit('client_msg', msg)
+                if(msg.toString() !== "" || msg.toString() !== " "){
+                    insertMsg(nick, msg)
+                }
+                $("#msg-field").val('').focus()
+                return false; //prevent page refresh by blocking usual submit behaviour
+            })
+
+            const insertMsg = (name, text, contentClass = 'msg-content') => {
+                    if(name === nick){
+                        name = "You"
+                    }
+                    $('#discussion-area').append('<div data-sender="'+name+'" class="msg-container"><span class="username '+ (name === "server" ? "userServer" : null) + '">'+ name + " :"+'</span><p class="'+contentClass+'">'+ text.toString()+'</p></div>')
+                    document.getElementById('discussion-area').scrollTo({top: 999999999999,left: 0,behavior: 'smooth' });
+            }
+        </script>
+    </body>
+</html>
