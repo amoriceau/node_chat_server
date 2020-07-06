@@ -1,0 +1,70 @@
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Simple node chat</title>
+        <link rel="stylesheet"
+        href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css"
+        integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p"
+        crossorigin="anonymous" />
+    </head>
+ 
+    <body>
+        <header>
+            <h1>Welcome to this simple <span>node + socket.io</span> server !</h1>
+        </header>
+        <main class="main-container">
+            <section class="discussion-area" id="discussion-area"></section>
+            <section class="writting-area">
+                <form action="/" method="post" id="msg-form">
+                    <label for="msg-field"><i class="fal fa-comment-alt-lines"></i></label>
+                    <input type="text" placeholder="your message here..." name="msg-field" class="msg-field" id="msg-field">
+                    <input type="submit" class="msg-send"><i class="fad fa-paper-plane"></i>
+                </form>
+            </section>
+        </main>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            var socket = io.connect('http://localhost:8080');
+            let nick = "";
+            let introArr = ["Welcome aboard", "It\'s a small step for humanity, but a big step for", "A new pokemon appears, it\'s a wild"]
+            while (nick === undefined || nick === "" || nick.match(/[\s]/)) {
+                nick = prompt('May I get your name please : ');
+                if(nick === undefined || nick === "" || nick.match(/[\s]/)){
+                    alert("Invalid name")
+                }
+            }
+
+            socket.emit('new_user', nick)
+            document.title = nick + ' - ' + document.title
+
+            socket.on('sent_msg', data=>{
+                console.log('msg rcv from serv');
+                
+                insertMsg(data.from, data.content)
+            })
+
+            socket.on('user_join', name => {
+                insertMsg('server', introArr[Math.floor(Math.random() * introArr.length)] + ' ' + name + ' !', 'msg-server' )
+            })
+
+            $("#msg-form").submit(()=>{
+                let msg = $("#msg-field").val()
+
+                socket.emit('client_msg', msg)
+                insertMsg(nick, msg)
+                $("#msg-field").val('').focus()
+                return false; //prevent page refresh by blocking usual submit behaviour
+            })
+
+            const insertMsg = (name, text, contentClass = 'msg-content') => {
+
+                
+                
+                
+                $('#discussion-area').append('<div data-sender="'+name+'"><span class="username '+ (name === "server" ? "userServer" : null) + '">'+name+'</span><p class="'+contentClass+'">'+ text.toString()+'</p></div>')
+            }
+        </script>
+    </body>
+</html>
