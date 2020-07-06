@@ -7,12 +7,12 @@ let fs = require('fs');
 
 
 
-let server = http.createServer(function (req, res) {
-    fs.readFile('./index.html', 'utf-8', function (error, content) {
+let server = http.createServer( (req, res) =>{
+    fs.readFile('./index.html', 'utf-8', function (err, data) {
         res.writeHead(200, {
             "Content-Type": "text/html"
         });
-        res.end(content);
+        res.end(data);
     });
 });
 
