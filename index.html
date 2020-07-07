@@ -170,12 +170,21 @@
             })
 
             const insertMsg = (name, text, contentClass = 'msg-content') => {
-                    if(name === nick){
-                        name = "You"
-                    }
-                    $('#discussion-area').append('<div data-sender="'+name+'" class="msg-container"><span class="username '+ (name === "server" ? "userServer" : null) + '">'+ name + " :"+'</span><p class="'+contentClass+'">'+ text.toString()+'</p></div>')
+                    text = escapeHtml(text)
+                    $('#discussion-area').append('<div data-sender="'+name+'" class="msg-container"><span class="username '+ (name === "server" ? "userServer" : "") + '">'+ (name === nick ? "You" : name) + " :"+'</span><p class="'+contentClass+'">'+ text.toString()+'</p></div>')
                     document.getElementById('discussion-area').scrollTo({top: 999999999999,left: 0,behavior: 'smooth' });
             }
+            function escapeHtml(text) {
+                var map = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                };
+                
+                return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+                }
         </script>
     </body>
 </html>
