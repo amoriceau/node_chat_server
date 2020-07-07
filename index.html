@@ -55,6 +55,7 @@
             .msg-container{
                 display: flex;
                 align-items: baseline;
+                max-width: 100%;
                 margin: 3px 0;
 
             }
@@ -77,7 +78,9 @@
                 background-color: #59273F;
                 padding: 8px 10px;
                 border-radius: 12px;
+                max-width: 90%;
                 backdrop-filter: blur(45px);
+                word-break: break-word;
                 -webkit-backdrop-filter: blur(45px);
             }
             input[type=text]{
@@ -167,12 +170,21 @@
             })
 
             const insertMsg = (name, text, contentClass = 'msg-content') => {
-                    if(name === nick){
-                        name = "You"
-                    }
-                    $('#discussion-area').append('<div data-sender="'+name+'" class="msg-container"><span class="username '+ (name === "server" ? "userServer" : null) + '">'+ name + " :"+'</span><p class="'+contentClass+'">'+ text.toString()+'</p></div>')
+                    text = escapeHtml(text)
+                    $('#discussion-area').append('<div data-sender="'+name+'" class="msg-container"><span class="username '+ (name === "server" ? "userServer" : "") + '">'+ (name === nick ? "You" : name) + " :"+'</span><p class="'+contentClass+'">'+ text.toString()+'</p></div>')
                     document.getElementById('discussion-area').scrollTo({top: 999999999999,left: 0,behavior: 'smooth' });
             }
+            function escapeHtml(text) {
+                var map = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                };
+                
+                return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+                }
         </script>
     </body>
 </html>
